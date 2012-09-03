@@ -144,13 +144,11 @@ void desenhaLinha(Imagem *img, Linha * lin, float cor);
 
 void desenhaBorda(Imagem *img, float cor);
 
-int  juntaPixels(Imagem *img, int x, int y, 
-		 float corNova, CelPixel *cabeca);
+int  juntaPixels(Imagem *img, int x, int y, float corNova, CelPixel *cabeca);
 
 int  segmentaRegioes(Imagem *img, CelRegiao cabecas[MAX_REGIOES]);
 
-void pintaRegiao(CelPixel *cab, Imagem *R, Imagem *G, Imagem *B, 
-		 float cor[3]);
+void pintaRegiao(CelPixel *cab, Imagem *R, Imagem *G, Imagem *B, float cor[3]);
 
 
 
@@ -171,17 +169,19 @@ int main(int argc, char** argv){
     
     pintaImagem(img, 1);
     
+    desenhaBorda(img, 0);
+    
     salvaImagem("Mondrian", img);
     
     return 0;
 }
 
-/* 
-////////////////////////////////////////////////////////////////////// 
+/* ////////////////////////////////////////////////////////////////////// 
   6  IMPLEMENTACAO DAS FUNCOES QUE VOCE DEVE FAZER
 
-\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-*/
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*/
+
+/*////Manipulação de imagem///////////////////////////////////////////////////////////////////////////*/
 
 Imagem *criaImagem(int nLins, int nCols){
     
@@ -191,7 +191,7 @@ Imagem *criaImagem(int nLins, int nCols){
     imagem = mallocSafe(sizeof(Imagem));
     
     imagem->pixel = mallocSafe(nCols * sizeof(int));   
-    for (i = 0; i < nCols; ++i)    imagem->pixel[i] = mallocSafe(nLins * sizeof(int));
+    for (i = 0 ; i < nCols ; ++i)    imagem->pixel[i] = mallocSafe(nLins * sizeof(int));
     
     imagem->nC = nLins;
     imagem->nL = nCols;
@@ -221,8 +221,8 @@ void pintaImagem(Imagem *img, float cor){
 
     int linha, coluna;
     
-    for(linha=0; linha<img->nL; linha++)
-        for(coluna=0; coluna<img->nC; coluna++)
+    for(linha = 0 ; linha < img->nL ; linha++)
+        for(coluna = 0 ; coluna < img->nC ; coluna++)
             setPixel(img, linha, coluna, cor);
 }
 
@@ -233,17 +233,34 @@ void copiaImagem (Imagem *destino, Imagem *origem){
     
     int linha, coluna;
     
-    for(linha=0; linha<destino->nL; linha++)
-        for(coluna=0; coluna<destino->nC; coluna++)
+    for(linha = 0 ; linha < destino->nL ; linha++)
+        for(coluna = 0 ; coluna < destino->nC ; coluna++)
             setPixel(destino, linha, coluna, origem->pixel[linha][coluna]);
 }
     
     
     
     
+/*////Desenho de Linhas///////////////////////////////////////////////////////////////////////////////*/
 
-
+void desenhaBorda(Imagem *img, float cor){
     
+    int linha, coluna;
+    
+    for(linha = 0 ; linha < img->nL ; linha++)
+        for(coluna = 0; coluna < img->nC ; coluna++)
+            if(coluna == 0 || linha == 0 || linha == (img->nL)-1 || coluna == (img->nC)-1)
+                setPixel(img, linha, coluna, cor);
+
+    /*Notas: Dessa forma, o código está bonitinho, mas está relativamente lento pois a imagem toda é percorrida e por hora estou com preguiça hahahaha*/
+}
+
+
+
+
+
+ 
+       
 
 
 /* 
