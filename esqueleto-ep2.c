@@ -382,7 +382,6 @@ int juntaPixels(Imagem *img, int x, int y, float corNova, CelPixel *cabeca){
 
 
 
-int segmentaRegioes(Imagem *img, celRegiao cabecas[MAX_REGIOES] ){
 
     
 
