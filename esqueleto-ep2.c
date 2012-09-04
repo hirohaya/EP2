@@ -382,13 +382,42 @@ int juntaPixels(Imagem *img, int x, int y, float corNova, CelPixel *cabeca){
 
 
 
+int segmentaRegioes(Imagem *img, CelRegiao cabecas[MAX_REGIOES] ){
 
-    
+    int i, j, contador = 0;
+    CelPixel *nova;
+
+    /*Como i e j comecam em 1 e terminam em (img->nL - 1) e (img->nC - 1), respectivamente, o for nao ira percorrer as bordas*/
+
+    for(i = 1 ; i < (img->nL - 1) ; i++)
+        for(j = 1 ; j < (img->nC - 1) ; j++)
+            if( getPixel(img, i-1, j) == 0 && getPixel(img, i, j-1) == 0){
+            
+                contador++;
+                cabecas[contador].tamanho = juntaPixels(img, i, j, 3, cabecas[contador].cabpix.prox);
+                printf("A regiao %d contem: %d pixels.\n", contador, cabecas[contador].tamanho);
+                
+                /*hora de inserir uma nova celula na lista ligada CelPixel*/
+                
+                nova = mallocSafe(sizeof(CelPixel));
+                nova->x = i;
+                nova->y = j;
+                nova->prox = cabecas[contador].cabpix.prox;
+                cabecas[contador].cabpix.prox = nova;
+                }
+                
+    return contador;
+}         
+  
 
 
-    
+
+/*////Pintura com uma cor RGB///////////////////////////////////////////////////////////////////////////////////*/
 
 
+
+
+ 
 
 
 
