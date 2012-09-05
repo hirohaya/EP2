@@ -186,30 +186,30 @@ void pintaRegiao(CelPixel *cab, Imagem *R, Imagem *G, Imagem *B, float cor[3]);
 
 int main(int argv, char **argc){
 
-    Imagem *img = mallocSafe(sizeof(Imagem));
-    
-
+    Imagem *img;
     Linha *lin;
-    CelPixel *cabeca;
+    CelRegiao *cabecas;
     
+    cabecas = mallocSafe(MAX_REGIOES * sizeof(int));
     
-    cabeca = mallocSafe(sizeof(CelPixel));
+    img = mallocSafe(sizeof(Imagem));
+    
+        
     lin = mallocSafe(sizeof(Linha));    
-    
-    lin->prox = NULL;
-    cabeca->prox = NULL;
-    
-    
+    lin->prox = NULL;         
     
     leMondrian(argc[1], &img->nL, &img->nC, lin);
 
     img = criaImagem(img->nL, img->nC);
     
-    pintaImagem(img, 1);
+    pintaImagem(img, COR_FUNDO);
     
-    desenhaBorda(img, 0);
+    desenhaBorda(img, COR_BORDA);
     
-    for(lin=lin->prox; lin != NULL; lin=lin->prox)    desenhaLinha(img, lin, 0);
+    for(lin=lin->prox; lin != NULL; lin=lin->prox)    desenhaLinha(img, lin, COR_BORDA);
+    
+    segmentaRegioes(img, cabecas );
+    
     
     salvaImagem(argc[2], img);
     
@@ -235,8 +235,6 @@ Imagem *criaImagem(int nLins, int nCols){
     
     Imagem *imagem;
     int i;
-    
-    printf("Comecou o criaImagem!!!\n\n");
     
     imagem = mallocSafe(sizeof(Imagem));
     
@@ -272,13 +270,9 @@ void pintaImagem(Imagem *img, float cor){
 
     int linha, coluna;
     
-    printf("Comecou pintaImagem!!!\n\n");
-    
     for(linha = 0 ; linha < img->nL ; linha++)
         for(coluna = 0 ; coluna < img->nC ; coluna++)
             setPixel(img, linha, coluna, cor);
-            
-    printf("pintaImagem deu certo!!!\n\n");
 }
 
 
@@ -305,16 +299,12 @@ void desenhaBorda(Imagem *img, float cor){
     
     int linha, coluna;
     
-    printf("Comecou desenhaBorda!!!\n\n");
-    
     for(linha = 0 ; linha < img->nL ; linha++)
         for(coluna = 0; coluna < img->nC ; coluna++)
             if(coluna == 0 || linha == 0 || linha == (img->nL)-1 || coluna == (img->nC)-1)
                 setPixel(img, linha, coluna, cor);
 
     /*Notas: Dessa forma, o código está bonitinho, mas está relativamente lento pois a imagem toda é percorrida e por hora estou com preguiça hahahaha*/
-    
-    printf("desenhaBorda deu certo!!!\n\n");
 }
 
 
@@ -323,8 +313,6 @@ void desenhaBorda(Imagem *img, float cor){
 void desenhaLinha(Imagem *img, Linha *lin, float cor){
  
     int pixelLinha;
-    
-    printf("Comecou desenhaLinha!!!\n\n");
 
     if(lin->tipo == 'H'){
         for(pixelLinha = lin->ini ; pixelLinha < lin->fim ; pixelLinha++)
@@ -335,8 +323,6 @@ void desenhaLinha(Imagem *img, Linha *lin, float cor){
         for(pixelLinha = lin->ini ; pixelLinha < lin->fim ; pixelLinha++)
             setPixel(img, pixelLinha, lin->pos, cor);
     } 
-    
-    printf("desenhaLinha deu certo!!!\n\n");
 }     
            
        
@@ -350,10 +336,11 @@ void desenhaLinha(Imagem *img, Linha *lin, float cor){
 int juntaPixels(Imagem *img, int x, int y, float corNova, CelPixel *cabeca){
     
     CelPixel *nova;
-    int contador = 0;
-    nova = mallocSafe(sizeof(CelPixel));   
+    int numeroPixels = 0;
+    
+    nova = mallocSafe(sizeof(CelPixel));
    
-    if( getPixel(img, x, y ) == 1 ){ /*Se o pixel for da cor de fundo, ele sera adicionado na lista e pintado*/
+    if( getPixel(img, x, y ) == COR_FUNDO ){ /*Se o pixel for da cor de fundo, ele sera adicionado na lista e pintado*/
         nova->x = x;
         nova->y = y;
         nova->prox = cabeca->prox;
@@ -363,19 +350,19 @@ int juntaPixels(Imagem *img, int x, int y, float corNova, CelPixel *cabeca){
         
      /*A posicao (x, y) inical da sub-matriz sera o equivalente ao (0, 0) dela*/
         
-     if( getPixel(img, x-1, y) != 1 && getPixel(img, x, y+1) == 1)    return juntaPixels(img, x, y+1, corNova, cabeca);
+     if( getPixel(img, x-1, y) != COR_FUNDO && getPixel(img, x, y+1) == COR_FUNDO)    return juntaPixels(img, x, y+1, corNova, cabeca);
      
-     if( getPixel(img, x, y+1) != 1 && getPixel(img, x+1, y) == 1)    return juntaPixels(img, x+1, y, corNova, cabeca);
+     if( getPixel(img, x, y+1) != COR_FUNDO && getPixel(img, x+1, y) == COR_FUNDO)    return juntaPixels(img, x+1, y, corNova, cabeca);
      
-     if( getPixel(img, x+1, y) != 1 && getPixel(img, x, y-1) == 1)    return juntaPixels(img, x, y-1, corNova, cabeca);
+     if( getPixel(img, x+1, y) != COR_FUNDO && getPixel(img, x, y-1) == COR_FUNDO)    return juntaPixels(img, x, y-1, corNova, cabeca);
      
-     if( getPixel(img, x, y-1) != 1 && getPixel(img, x-1, y) == 1)    return juntaPixels(img, x-1, y, corNova, cabeca);     
+     if( getPixel(img, x, y-1) != COR_FUNDO && getPixel(img, x-1, y) == COR_FUNDO)    return juntaPixels(img, x-1, y, corNova, cabeca);     
      
      else{
         
-        for (cabeca=cabeca->prox; cabeca != NULL; cabeca=cabeca->prox)    contador++;
+        for (cabeca=cabeca->prox; cabeca != NULL; cabeca=cabeca->prox)    numeroPixels++;
         
-     return contador;
+     return numeroPixels;
     }
 }
 
@@ -384,28 +371,46 @@ int juntaPixels(Imagem *img, int x, int y, float corNova, CelPixel *cabeca){
 
 int segmentaRegioes(Imagem *img, CelRegiao cabecas[MAX_REGIOES] ){
 
-    int i, j, contador = 0;
+    
+    int i, j, contador = 0, m = 0, n = 0;
     CelPixel *nova;
+    
+    cabecas[contador].cabpix.prox = NULL;
+    
+    nova = mallocSafe(sizeof(CelPixel));
 
-    /*Como i e j comecam em 1 e terminam em (img->nL - 1) e (img->nC - 1), respectivamente, o for nao ira percorrer as bordas*/
+    /*Como i e j comecam em 1 e terminam em (img->nL - 2) e (img->nC - 2), respectivamente, o 'for' nao ira percorrer as bordas*/
 
-    for(i = 1 ; i < (img->nL - 1) ; i++)
-        for(j = 1 ; j < (img->nC - 1) ; j++)
-            if( getPixel(img, i-1, j) == 0 && getPixel(img, i, j-1) == 0){
-            
-                contador++;
-                cabecas[contador].tamanho = juntaPixels(img, i, j, 3, cabecas[contador].cabpix.prox);
-                printf("A regiao %d contem: %d pixels.\n", contador, cabecas[contador].tamanho);
+    for(i = 1 ; i < (img->nL - 2) ; i++)
+        for(j = 1 ; j < (img->nC - 2) ; j++)
+            if( getPixel(img, i-1, j) == COR_BORDA && getPixel(img, i, j-1) == COR_BORDA && getPixel(img, i-1, j-1) == COR_BORDA){
                 
-                /*hora de inserir uma nova celula na lista ligada CelPixel*/
+                /*Se o pixel que esta na posicao (i, j) estiver num canto superior esquerdo, ele sera o pixel 'semente', ou seja, cabecas[contador].cabpix.prox = 'pixel semente'*/
                 
-                nova = mallocSafe(sizeof(CelPixel));
                 nova->x = i;
                 nova->y = j;
                 nova->prox = cabecas[contador].cabpix.prox;
                 cabecas[contador].cabpix.prox = nova;
-                }
+                cabecas[contador].tamanho = juntaPixels(img, i, j, 3, cabecas[contador].cabpix.prox);
+                printf("O grupo  %d tem %d pixels.\n", contador, cabecas[contador].tamanho );
                 
+                /*hora de inserir os demais pixels dessa regiao na lista ligada*/
+                
+                m = i;
+                n = j;
+                
+                for(m = i ; getPixel(img, m, n) != COR_BORDA ; m++)
+                    for(n = j ; getPixel(img, m, n) != COR_BORDA ; n++){
+                
+                        nova = mallocSafe(sizeof(CelPixel));
+                        nova->x = m;
+                        nova->y = n;
+                        nova->prox = cabecas[contador].cabpix.prox;
+                        cabecas[contador].cabpix.prox = nova;
+                        }
+            
+    printf("A imagem contem %d regioes.\n", contador);          
+    
     return contador;
 }         
   
@@ -417,7 +422,9 @@ int segmentaRegioes(Imagem *img, CelRegiao cabecas[MAX_REGIOES] ){
 
 
 
- 
+void pintaRegiao(CelPixel *cab, Imagem *R, Imagem *G, Imagem *B, float cor[3]){}
+
+    
 
 
 
@@ -535,14 +542,14 @@ void leMondrian(char *nomeArquivo, int *altura, int *largura, Linha *cab)
 	break;
 
       case 'r':
-      case 'R': printf("Linha 407\n");
+      case 'R':
 	     npars = fscanf(entrada, "%d %d", altura, largura);
 	if (npars != 2) {
 	  fprintf(stderr, "ERRO na leitura da dimensao da imagem no arquivo de entrada %s\n", nomeArquivo);
 	  exit (-1);
 	}
     
-	else {printf("LINHA 415\n");
+	else {
 	  fprintf(stdout, "Resolucao da Imagem: %d linhas x %d colunas \n", *altura, *largura);
 	}
 	break;
