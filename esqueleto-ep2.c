@@ -206,10 +206,9 @@ int main(int argv, char **argc){
     
     desenhaBorda(img, COR_BORDA);
     
-    for(lin=lin->prox; lin != NULL; lin=lin->prox)    desenhaLinha(img, lin, COR_BORDA);
+    for(lin=lin->prox; lin != NULL; lin=lin->prox)    desenhaLinha(img, lin, COR_BORDA);    
     
-    segmentaRegioes(img, cabecas );
-    
+    segmentaRegioes(img, cabecas);
     
     salvaImagem(argc[2], img);
     
@@ -348,22 +347,32 @@ int juntaPixels(Imagem *img, int x, int y, float corNova, CelPixel *cabeca){
         setPixel(img, x, y, corNova);
         }
         
-     /*A posicao (x, y) inical da sub-matriz sera o equivalente ao (0, 0) dela*/
+     if( getPixel(img, x, y+1) == COR_FUNDO)    juntaPixels(img, x, y+1, corNova, cabeca);
+     
+     if( getPixel(img, x-1, y) == COR_FUNDO)    juntaPixels(img, x-1, y, corNova, cabeca);
+     
+     if( getPixel(img, x, y-1) == COR_FUNDO)    juntaPixels(img, x, y-1, corNova, cabeca);
+     
+     if( getPixel(img, x+1, y) == COR_FUNDO)    juntaPixels(img, x+1, y, corNova, cabeca);   
+     
+     if( getPixel(img, x+1, y) == COR_FUNDO)    juntaPixels(img, x+1, y, corNova, cabeca); 
+     
+     if( getPixel(img, x+1, y+1) == COR_FUNDO)    juntaPixels(img, x+1, y+1, corNova, cabeca); 
+     
+     if( getPixel(img, x+1, y-1) == COR_FUNDO)    juntaPixels(img, x+1, y-1, corNova, cabeca); 
+     
+     if( getPixel(img, x-1, y+1) == COR_FUNDO)    juntaPixels(img, x-1, y+1, corNova, cabeca); 
+     
+     if( getPixel(img, x-1, y-1) == COR_FUNDO)    juntaPixels(img, x-1, y-1, corNova, cabeca); 
         
-     if( getPixel(img, x-1, y) != COR_FUNDO && getPixel(img, x, y+1) == COR_FUNDO)    return juntaPixels(img, x, y+1, corNova, cabeca);
-     
-     if( getPixel(img, x, y+1) != COR_FUNDO && getPixel(img, x+1, y) == COR_FUNDO)    return juntaPixels(img, x+1, y, corNova, cabeca);
-     
-     if( getPixel(img, x+1, y) != COR_FUNDO && getPixel(img, x, y-1) == COR_FUNDO)    return juntaPixels(img, x, y-1, corNova, cabeca);
-     
-     if( getPixel(img, x, y-1) != COR_FUNDO && getPixel(img, x-1, y) == COR_FUNDO)    return juntaPixels(img, x-1, y, corNova, cabeca);     
-     
+        
      else{
         
         for (cabeca=cabeca->prox; cabeca != NULL; cabeca=cabeca->prox)    numeroPixels++;
-        
-     return numeroPixels;
     }
+    
+    return numeroPixels;
+    
 }
 
 
@@ -372,8 +381,12 @@ int juntaPixels(Imagem *img, int x, int y, float corNova, CelPixel *cabeca){
 int segmentaRegioes(Imagem *img, CelRegiao cabecas[MAX_REGIOES] ){
 
     
-    int i, j, contador = 0, m = 0, n = 0;
+    int i, j, contador, m, n;
     CelPixel *nova;
+    
+    contador = 0;
+    m = 0;
+    n = 0;
     
     cabecas[contador].cabpix.prox = NULL;
     
@@ -381,12 +394,9 @@ int segmentaRegioes(Imagem *img, CelRegiao cabecas[MAX_REGIOES] ){
 
     /*Como i e j comecam em 1 e terminam em (img->nL - 2) e (img->nC - 2), respectivamente, o 'for' nao ira percorrer as bordas*/
 
-    for(i = 1 ; i < (img->nL - 2) ; i++)
-        for(j = 1 ; j < (img->nC - 2) ; j++)
-            if( getPixel(img, i-1, j) == COR_BORDA && getPixel(img, i, j-1) == COR_BORDA && getPixel(img, i-1, j-1) == COR_BORDA){
-                
-                /*Se o pixel que esta na posicao (i, j) estiver num canto superior esquerdo, ele sera o pixel 'semente', ou seja, cabecas[contador].cabpix.prox = 'pixel semente'*/
-                
+    for(i = 0 ; i < img->nL ; i++){
+        for(j = 0 ; j < img->nC ; j++){
+            if( getPixel(img, i, j) == COR_FUNDO){    
                 nova->x = i;
                 nova->y = j;
                 nova->prox = cabecas[contador].cabpix.prox;
@@ -399,7 +409,7 @@ int segmentaRegioes(Imagem *img, CelRegiao cabecas[MAX_REGIOES] ){
                 m = i;
                 n = j;
                 
-                for(m = i ; getPixel(img, m, n) != COR_BORDA ; m++)
+                for(m = i ; getPixel(img, m, n) != COR_BORDA ; m++){
                     for(n = j ; getPixel(img, m, n) != COR_BORDA ; n++){
                 
                         nova = mallocSafe(sizeof(CelPixel));
@@ -407,8 +417,13 @@ int segmentaRegioes(Imagem *img, CelRegiao cabecas[MAX_REGIOES] ){
                         nova->y = n;
                         nova->prox = cabecas[contador].cabpix.prox;
                         cabecas[contador].cabpix.prox = nova;
-                        }
-            
+                    }
+                }
+                contador++;
+            }  
+        }
+    }   
+    
     printf("A imagem contem %d regioes.\n", contador);          
     
     return contador;
