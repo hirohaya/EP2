@@ -172,7 +172,7 @@ int  segmentaRegioes(Imagem *img, CelRegiao cabecas[MAX_REGIOES]);
 
 void pintaRegiao(CelPixel *cab, Imagem *R, Imagem *G, Imagem *B, float cor[3]);
 
-
+void imprima(CelPixel *ini);
 
 
 /*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -186,31 +186,62 @@ void pintaRegiao(CelPixel *cab, Imagem *R, Imagem *G, Imagem *B, float cor[3]);
 
 int main(int argv, char **argc){
 
-    Imagem *img;
+    Imagem *img, *r, *g, *b;
     Linha *lin;
     CelRegiao *cabecas;
+    int numeroDeRegioes, i, j=0;
     
+    float CORES[12][3]={{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 
+                        {0.0, 0.0, 1.0}, {1.0, 1.0, 0.0}, 
+                        {1.0, 0.0, 1.0}, {0.0, 0.0, 0.0}, 
+                        {0.2, 0.7, 0.4}, {0.7, 0.4, 0.2}, 
+                        {0.0, 1.0, 1.0}, {0.5, 0.5, 0.5},
+                        {1.0, 1.0, 1.0}, {0.0, 0.0, 0.0}};
+    
+    lin = mallocSafe(sizeof(Linha));
+    lin->prox = NULL;
     cabecas = mallocSafe(MAX_REGIOES * sizeof(int));
     
+    
     img = mallocSafe(sizeof(Imagem));
-    
+    r = mallocSafe(sizeof(Imagem));
+    g = mallocSafe(sizeof(Imagem));
+    b = mallocSafe(sizeof(Imagem));
         
-    lin = mallocSafe(sizeof(Linha));    
-    lin->prox = NULL;         
-    
     leMondrian(argc[1], &img->nL, &img->nC, lin);
+    leMondrian(argc[1], &r->nL, &r->nC, lin);
+    leMondrian(argc[1], &g->nL, &g->nC, lin);
+    leMondrian(argc[1], &b->nL, &b->nC, lin);
 
     img = criaImagem(img->nL, img->nC);
+    r = criaImagem(r->nL, r->nC);
+    g = criaImagem(g->nL, g->nC);
+    b = criaImagem(b->nL, b->nC);
+    
     
     pintaImagem(img, COR_FUNDO);
-    
     desenhaBorda(img, COR_BORDA);
+    for(lin=lin->prox; lin != NULL; lin=lin->prox)    desenhaLinha(img, lin, COR_BORDA);
+
+    numeroDeRegioes = segmentaRegioes(img, cabecas);
     
-    for(lin=lin->prox; lin != NULL; lin=lin->prox)    desenhaLinha(img, lin, COR_BORDA);    
     
-    segmentaRegioes(img, cabecas);
+    printf("E comeca a pintura!\n");
     
-    salvaImagem(argc[2], img);
+    for(i = 0 ; i < numeroDeRegioes ; i++){
+    
+        pintaRegiao(cabecas[i].cabpix.prox, r, g, b, CORES[j]);
+        j++;
+        
+        if(j == 12)    j = 0;
+    }
+    
+    salvaImagem("R", r);
+    salvaImagem("G", g);
+    salvaImagem("B", b);
+    salvaImagem("Preto e branco", img);
+    
+    salvaImagemRGB (argc[2], r, g, b);
     
     return 0;
 }
@@ -339,7 +370,7 @@ int juntaPixels(Imagem *img, int x, int y, float corNova, CelPixel *cabeca){
     
     nova = mallocSafe(sizeof(CelPixel));
    
-    if( getPixel(img, x, y ) == COR_FUNDO ){ /*Se o pixel for da cor de fundo, ele sera adicionado na lista e pintado*/
+    if( getPixel(img, x, y ) != COR_BORDA ){ /*Se o pixel nao for da cor de borda, ele sera adicionado na lista e pintado*/
         nova->x = x;
         nova->y = y;
         nova->prox = cabeca->prox;
@@ -373,6 +404,18 @@ int juntaPixels(Imagem *img, int x, int y, float corNova, CelPixel *cabeca){
     
     return numeroPixels;
     
+}
+
+
+
+
+void imprima(CelPixel *ini){
+  if (ini->prox == NULL)
+    printf("A lista esta vazia.\n");
+  else {
+    for (ini=ini->prox; ini != NULL; ini=ini->prox)
+      printf("%d %d\n", ini->x, ini->y);
+  }
 }
 
 
@@ -437,7 +480,17 @@ int segmentaRegioes(Imagem *img, CelRegiao cabecas[MAX_REGIOES] ){
 
 
 
-void pintaRegiao(CelPixel *cab, Imagem *R, Imagem *G, Imagem *B, float cor[3]){}
+void pintaRegiao(CelPixel *cab, Imagem *R, Imagem *G, Imagem *B, float *cor){
+
+    for(cab = cab ; cab->prox != NULL ; cab = cab->prox){
+
+        setPixel(R, cab->prox->x, cab->prox->y, cor[2]);
+        setPixel(G, cab->prox->x, cab->prox->y, cor[1]);
+        setPixel(B, cab->prox->x, cab->prox->y, cor[0]);
+        
+    }
+    
+}
 
     
 
